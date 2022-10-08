@@ -13,6 +13,24 @@ struct request {
   char *text;
 };
 
+int read_line_number() {
+  char *user_input;
+  int line_number = 0;
+  while (line_number == 0) {
+    printf("Insert line number (starting with 1):");
+    scanf("%s", &user_input);
+    fflush(stdin);
+    line_number = atoi(user_input);
+    if (line_number <= 0) {
+      printf("Line number must be an integer bigger than zero.");
+      continue;
+    } else {
+      break;
+    }
+  }
+  return line_number;
+}
+
 void get_line(int sockfd, int line_no) {
   struct request req;
   req.type = GET_LINE;
@@ -22,7 +40,7 @@ void get_line(int sockfd, int line_no) {
 	//read(sockfd, text, LINE_SIZE);
   char *text;
   read(sockfd, text, sizeof(text));
-  printf("Texto da linha %i: %s\n", line_no, text);
+  printf("Line text %i: %s\n", line_no, text);
 }
 
 void add_line(int sockfd, int line_no, char *text) {
@@ -31,29 +49,12 @@ void add_line(int sockfd, int line_no, char *text) {
   req.line_index = line_no;
   req.text = text;
   write(sockfd, &req, sizeof(req));
-  char *text;
-  read(sockfd, text, sizeof(text));
-  printf("Resposta do servidor: %s\n", line_no, text);
+  char *server_answer;
+  read(sockfd, server_answer, sizeof(server_answer));
+  printf("Server answer: %s\n", line_no, server_answer);
 }
 
-int main(int argc, char **argv)
-{
-  if (argc < 3) {
-    perror("Not enough arguments. Try \"./client get_line {line_no}\" or \"./client add_line {line_no} \"{text}\" \" ");
-		exit(1);
-  }
-  if (argv[2] != "get_line" && argv[2] != "write_line") {
-    perror("Function not supported. Try \"./client get_line {line_no}\" or \"./client add_line {line_no} \"{text}\" \" ");
-		exit(1);
-  }
-  if (atoi(argv[3]) == 0) {
-    perror("Third argument must be a line number bigger than zero. Try \"./client get_line {line_no}\" or \"./client add_line {line_no} \"{text}\" \" ");
-    exit(1);
-  }
-  if (argv[3] == "write_line" && argc != 4) {
-    perror("Text to write was not supplied. Try \"./client add_line {line_no} \"{text}\" \" ");
-    exit(1);
-  }
+int main(int argc, char **argv) {
 
   // Socket connection
   int sockfd;
@@ -75,17 +76,32 @@ int main(int argc, char **argv)
 		exit(1);
   }
 
-  // Operations
-  int line_number = atoi(argv[3]) - 1; // To index the file starting with 0
-  
-  if (argv[3] == "get_line") {
-    get_line(sockfd, line_number);
-  } else if (argv[3] == "write_line") {
-    char *text_to_write = argv[4];
-    write_line(sockfd, line_number, text_to_write);
+  // Client operations
+  char* user_input = "";
+  while (1) {
+    printf("Insert desired operation (get_line, add_line, exit):");
+    scanf("%s", &user_input);
+    fflush(stdin);
+    if (user_input == "exit") {
+      break;
+    }
+    if (user_input == "get_line") {
+      int line_number = read_line_number();
+      get_line(sockfd, line_number);
+      continue;
+    }
+    if (user_input == "add_line") {
+      int line_number = read_line_number();
+      char *text_to_write;
+      printf("Insert text to write:");
+      scanf("%s", &text_to_write);
+      add_line(sockfd, line_number, text_to_write);
+      continue;
+    }
+    printf("Operation not supported. The options are get_line, add_line and exit.");
   }
 
   // Close socket connection
-	close(sockfd);
-	exit(0);
+  close(sockfd);
+	exit(0);close_socket_connection(sockfd);
 }
