@@ -8,44 +8,37 @@
 #include <stdlib.h>
 #include "utils.h"
 
-int read_line_number()
-{
+int read_line_number() {
   char *user_input;
   int line_number = 0;
-  while (line_number == 0)
-  {
+  while (line_number == 0) {
     printf("Insert line number (starting with 1):");
     scanf("%s", &user_input);
     fflush(stdin);
     line_number = atoi(user_input);
-    if (line_number <= 0)
-    {
+    if (line_number <= 0) {
       printf("Line number must be an integer bigger than zero.");
       continue;
-    }
-    else
-    {
+    } else {
       break;
     }
   }
   return line_number;
 }
 
-void get_line(int sockfd, int line_no)
-{
+void get_line(int sockfd, int line_no) {
   struct request req;
   req.type = GET_LINE;
   req.line_index = line_no;
   write(sockfd, &req, sizeof(req));
-  // char text[LINE_SIZE];
-  // read(sockfd, text, LINE_SIZE);
+  //char text[LINE_SIZE];
+	//read(sockfd, text, LINE_SIZE);
   char *text;
   read(sockfd, text, sizeof(text));
   printf("Line text %i: %s\n", line_no, text);
 }
 
-void add_line(int sockfd, int line_no, char *text)
-{
+void add_line(int sockfd, int line_no, char *text) {
   struct request req;
   req.type = GET_LINE;
   req.line_index = line_no;
@@ -56,8 +49,7 @@ void add_line(int sockfd, int line_no, char *text)
   printf("Server answer: %s\n", line_no, server_answer);
 }
 
-int main(int argc, char **argv)
-{
+int main(int argc, char **argv) {
 
   // Socket connection
   int sockfd;
@@ -69,37 +61,32 @@ int main(int argc, char **argv)
 
   address.sin_family = AF_INET;
   address.sin_addr.s_addr = inet_addr("127.0.0.1");
-  // address.sin_addr.s_addr = inet_addr("192.168.0.15");
-  // address.sin_addr.s_addr = htonl(INADDR_ANY);
+  //address.sin_addr.s_addr = inet_addr("192.168.0.15");
+  //address.sin_addr.s_addr = htonl(INADDR_ANY);
   address.sin_port = htons(PORT);
   len = sizeof(address);
   result = connect(sockfd, (struct sockaddr *)&address, len);
-  if (result == -1)
-  {
-    perror("Client could not connect to socket.");
-    exit(1);
+  if(result == -1) {
+		perror("Client could not connect to socket.");
+		exit(1);
   }
 
   // Client operations
-  char *user_input[3];
-  while (1)
-  {
+  char* user_input[3];
+  while (1) {
     printf("Insert desired operation (get_line, add_line, exit):");
-    scanf("%s", STR(LINE_SIZE), "[^\n]", user_input);
+    scanf("%s", user_input);
     printf("%s", user_input);
     fflush(stdin);
-    if (strcmp(user_input, "ext"))
-    {
+    if (strcmp(user_input, "ext")) {
       break;
     }
-    if (strcmp(user_input, "get"))
-    {
+    if (strcmp(user_input, "get")) {
       int line_number = read_line_number();
       get_line(sockfd, line_number);
       continue;
     }
-    if (strcmp(user_input, "add"))
-    {
+    if (strcmp(user_input, "add")) {
       int line_number = read_line_number();
       char *text_to_write;
       printf("Insert text to write:");
@@ -112,5 +99,5 @@ int main(int argc, char **argv)
 
   // Close socket connection
   close(sockfd);
-  exit(0);
+	exit(0);
 }
