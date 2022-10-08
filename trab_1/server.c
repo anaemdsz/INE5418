@@ -87,6 +87,8 @@ int main()
     // sprintf(str_out, "%s cruel\n", str_in);
     sprintf(str_out, "Processing req.");
     write(client_sockfd, &str_out, 1024);
+
+    
     close(client_sockfd);
   }
 }
