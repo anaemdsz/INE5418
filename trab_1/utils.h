@@ -6,7 +6,7 @@
 #define GET_LINE 1
 #define WRITE_LINE 2
 
-struct request {
+struct Request {
   int type;
   int line_index;
   char text[LINE_SIZE];

@@ -84,11 +84,12 @@ int main()
     client_len = sizeof(client_address);
     client_sockfd = accept(server_sockfd, (struct sockaddr *)&client_address, &client_len);
     read(client_sockfd, &str_in, 1024);
+    printf(str_in);
     // sprintf(str_out, "%s cruel\n", str_in);
     sprintf(str_out, "Processing req.");
     write(client_sockfd, &str_out, 1024);
 
-    
+
     close(client_sockfd);
   }
 }
