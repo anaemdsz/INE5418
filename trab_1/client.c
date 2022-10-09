@@ -18,7 +18,6 @@ int read_line_number()
     // fflush(stdin);
     scanf("%s", &user_input);
     line_number = atoi(user_input);
-    printf ("%i", line_number);
     if (line_number <= 0)
     {
       printf("Line number must be an integer bigger than zero.");
@@ -29,34 +28,44 @@ int read_line_number()
       break;
     }
   }
-  printf("returning line number\n");
   return line_number;
 }
 
 void get_line(int sockfd, int line_no)
 {
-  struct request req;
+  char message[REQ_SIZE] = "1";
+  char index[4];
+  char filler[LINE_SIZE] = {0};
 
-  req.type = GET_LINE;
-  req.line_index = line_no;
-  write(sockfd, &req, sizeof(req));
-  char text[LINE_SIZE];
-  read(sockfd, text, LINE_SIZE);
-  //char *text;
-  //read(sockfd, text, sizeof(text));
-  printf("Line text %i: %s\n", line_no, text);
+  sprintf(index, "%04u", line_no);
+  strcat(message, index);
+  strcat(message, filler);
+
+  write(sockfd, message, REQ_SIZE);
+
+  char response[LINE_SIZE];
+  read(sockfd, response, LINE_SIZE);
+  printf("Line text %i: %s\n", line_no, response);
 }
 
 void add_line(int sockfd, int line_no, char *text)
 {
-  struct request req;
-  req.type = GET_LINE;
-  req.line_index = line_no;
-  strcpy(req.text, text);
-  write(sockfd, &req, sizeof(req));
-  char *server_answer;
-  read(sockfd, server_answer, sizeof(server_answer));
-  printf("Server answer: %s\n", line_no, server_answer);
+  char message[REQ_SIZE] = "2";
+  char buff[REQ_SIZE];
+  char index[4];
+
+  sprintf(index, "%04u", line_no);
+  strcat(message, index);
+  strcat(message, text);
+  printf("%s\n", message);
+
+  sprintf(buff, "%-" STR(LINE_SIZE) "s", message);
+  printf("%s\n", buff);
+  write(sockfd, buff, REQ_SIZE);
+
+  char response[LINE_SIZE];
+  read(sockfd, response, LINE_SIZE);
+  printf("Server answer: %s\n", response);
 }
 
 int main(int argc, char **argv)
@@ -77,7 +86,6 @@ int main(int argc, char **argv)
   address.sin_port = htons(PORT);
   len = sizeof(address);
   result = connect(sockfd, (struct sockaddr *)&address, len);
-  printf("%d", result);
   if (result == -1)
   {
     perror("Client could not connect to socket.");
@@ -88,7 +96,8 @@ int main(int argc, char **argv)
   char user_input[3];
   while (1)
   {
-    printf("Insert desired operation (get_line, add_line, exit):");
+    strcpy(user_input, "");
+    printf("Insert desired operation (get, add, ext):");
     scanf("%[^\n]+", user_input);
     if (strcmp(user_input, "ext") == 0)
     {
@@ -103,13 +112,14 @@ int main(int argc, char **argv)
     if (strcmp(user_input, "add") == 0)
     {
       int line_number = read_line_number();
-      char *text_to_write;
+      char text_to_write[LINE_SIZE];
       printf("Insert text to write:");
       scanf("%s", &text_to_write);
       add_line(sockfd, line_number, text_to_write);
       continue;
     }
-    printf("Operation not supported. The options are get_line, add_line and exit.");
+    printf("%s\n", user_input);
+    printf("Operation not supported. The options are {get, add, ext}\n");
   }
 
   // Close socket connection
