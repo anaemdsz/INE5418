@@ -44,8 +44,8 @@ void get_line(int sockfd, int line_no)
 
   write(sockfd, message, REQ_SIZE);
 
-  char response[LINE_SIZE];
-  read(sockfd, response, LINE_SIZE);
+  char response[RESPONSE_SIZE];
+  read(sockfd, response, RESPONSE_SIZE);
   printf("Text from line %i: %s\n", line_no, response);
 }
 
@@ -97,27 +97,26 @@ int main(int argc, char **argv)
   char user_input[4];
   while (1)
   {
-
-    printf("entrou no while \n");
-    printf("SOCKFD: %d\n", sockfd);
     printf("Insert desired operation (get, add, ext):\n");
     fgets(user_input, 4, stdin);
     char c;
-    while((c = getchar()) != '\n' && c != EOF && c);
+    while ((c = getchar()) != '\n' && c != EOF && c)
+      ;
     printf("Selected operation: %s\n", user_input);
     if (strcmp(user_input, "ext") == 0)
     {
+      // Close socket connection
+      close(sockfd);
       write(sockfd, "EXITING", 8);
       break;
     }
-    if (strcmp(user_input, "get") == 0)
+    else if (strcmp(user_input, "get") == 0)
     {
       int line_number = read_line_number();
       get_line(sockfd, line_number);
-      printf("continuar a execução \n");
       continue;
     }
-    if (strcmp(user_input, "add") == 0)
+    else if (strcmp(user_input, "add") == 0)
     {
       int line_number = read_line_number();
       char text_to_write[LINE_SIZE];
@@ -126,10 +125,11 @@ int main(int argc, char **argv)
       add_line(sockfd, line_number, text_to_write);
       continue;
     }
-    printf("Operation not supported. The options are {get, add, ext}\n");
+    else
+    {
+      printf("Operation not supported. The options are {get, add, ext}\n");
+    }
   }
 
-  // Close socket connection
-  close(sockfd);
   exit(0);
 }
