@@ -67,13 +67,13 @@ int main()
   int server_len, client_len;
   struct sockaddr_in server_address;
   struct sockaddr_in client_address;
-  char str_in[1024];
+  char str_in[sizeof(struct request)];
   char str_out[1024];
 
   server_sockfd = socket(AF_INET, SOCK_STREAM, 0);
   server_address.sin_family = AF_INET;
-  //  server_address.sin_addr.s_addr = inet_addr("127.0.0.1");
-  server_address.sin_addr.s_addr = htonl(INADDR_ANY);
+  server_address.sin_addr.s_addr = inet_addr("127.0.0.1");
+  //server_address.sin_addr.s_addr = htonl(INADDR_ANY);
   server_address.sin_port = htons(PORT);
   server_len = sizeof(server_address);
   bind(server_sockfd, (struct sockaddr *)&server_address, server_len);
@@ -83,10 +83,10 @@ int main()
     printf("server waiting\n");
     client_len = sizeof(client_address);
     client_sockfd = accept(server_sockfd, (struct sockaddr *)&client_address, &client_len);
-    read(client_sockfd, &str_in, 1024);
-    printf(str_in);
+    read(client_sockfd, &str_in, sizeof(struct request));
+    printf("%s", &str_in);
     // sprintf(str_out, "%s cruel\n", str_in);
-    sprintf(str_out, "Processing req.");
+    printf("Processing req.\n");
     write(client_sockfd, &str_out, 1024);
 
 
