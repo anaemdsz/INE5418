@@ -14,7 +14,7 @@
 #define FILENAME "file.txt"
 
 FILE *shared_file;
-char text[MAX_LINES][LINE_SIZE];
+char text[MAX_LINES+1][LINE_SIZE];
 pthread_mutex_t line_lock[MAX_LINES];
 
 char req_type;
@@ -28,7 +28,7 @@ void read_file_matrix()
   char *line = NULL;
   size_t len = 0;
   ssize_t read;
-  int i = 0;
+  int i = 1;
   shared_file = fopen(FILENAME, "r");
 
   while (((read = getline(&line, &len, shared_file)) != -1) && (i <= MAX_LINES))
@@ -62,8 +62,9 @@ char *add_line(int index, char *content)
     pthread_mutex_lock(&line_lock[index]);
     strcpy(text[index], content);
     pthread_mutex_unlock(&line_lock[index]);
+    return "DONE";
   }
-  return "DONE";
+  return "ERR?";
 }
 
 int main()
@@ -110,12 +111,12 @@ int main()
     }
     else
     {
+      close(client_sockfd);
       printf("DIDNT.\n");
     }
 
     printf("Response:%s\n", response);
     write(client_sockfd, &response, RESPONSE_SIZE);
 
-    close(client_sockfd);
   }
 }

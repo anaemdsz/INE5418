@@ -10,17 +10,17 @@
 
 int read_line_number()
 {
-  char user_input[4];
+  char user_input[8];
   int line_number = 0;
   while (line_number == 0)
   {
-    printf("Insert line number (starting with 1):");
+    printf("Insert line number (starting with 0001):\n");
     // fflush(stdin);
-    scanf("%s", &user_input);
+    fgets(user_input, 4, stdin);
     line_number = atoi(user_input);
     if (line_number <= 0)
     {
-      printf("Line number must be an integer bigger than zero.");
+      printf("Line number must be an integer bigger than zero.\n");
       continue;
     }
     else
@@ -34,8 +34,8 @@ int read_line_number()
 void get_line(int sockfd, int line_no)
 {
   char message[REQ_SIZE] = "1";
-  char index[4];
   char filler[LINE_SIZE] = {0};
+  char index[8];
 
   sprintf(index, "%04u", line_no);
   strcat(message, index);
@@ -52,7 +52,7 @@ void add_line(int sockfd, int line_no, char *text)
 {
   char message[REQ_SIZE] = "2";
   char buff[REQ_SIZE];
-  char index[4];
+  char index[8];
 
   sprintf(index, "%04u", line_no);
   strcat(message, index);
@@ -88,19 +88,20 @@ int main(int argc, char **argv)
   result = connect(sockfd, (struct sockaddr *)&address, len);
   if (result == -1)
   {
-    perror("Client could not connect to socket.");
+    perror("Client could not connect to socket.\n");
     exit(1);
   }
 
   // Client operations
-  char user_input[3];
+  char user_input[4];
   while (1)
   {
-    strcpy(user_input, "");
-    printf("Insert desired operation (get, add, ext):");
-    scanf("%[^\n]+", user_input);
+    printf("Insert desired operation (get, add, ext):\n");
+    fgets(user_input, 4, stdin);
+    printf("%s\n", user_input);
     if (strcmp(user_input, "ext") == 0)
     {
+      write(sockfd, "EXITING", 8);
       break;
     }
     if (strcmp(user_input, "get") == 0)
@@ -114,11 +115,10 @@ int main(int argc, char **argv)
       int line_number = read_line_number();
       char text_to_write[LINE_SIZE];
       printf("Insert text to write:");
-      scanf("%s", &text_to_write);
+      fgets(text_to_write, LINE_SIZE, stdin);
       add_line(sockfd, line_number, text_to_write);
       continue;
     }
-    printf("%s\n", user_input);
     printf("Operation not supported. The options are {get, add, ext}\n");
   }
 
