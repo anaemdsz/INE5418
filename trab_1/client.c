@@ -17,7 +17,6 @@ int read_line_number()
     printf("Insert line number (starting with 0001):\n");
     // fflush(stdin);
     fgets(user_input, 4, stdin);
-    printf("Linha selecionada: %s \n", user_input);
     line_number = atoi(user_input);
     if (line_number <= 0)
     {
