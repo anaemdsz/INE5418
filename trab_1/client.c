@@ -17,6 +17,7 @@ int read_line_number()
     printf("Insert line number (starting with 0001):\n");
     // fflush(stdin);
     fgets(user_input, 4, stdin);
+    printf("Linha selecionada: %s \n", user_input);
     line_number = atoi(user_input);
     if (line_number <= 0)
     {
@@ -45,7 +46,7 @@ void get_line(int sockfd, int line_no)
 
   char response[LINE_SIZE];
   read(sockfd, response, LINE_SIZE);
-  printf("Line text %i: %s\n", line_no, response);
+  printf("Text from line %i: %s\n", line_no, response);
 }
 
 void add_line(int sockfd, int line_no, char *text)
@@ -96,9 +97,14 @@ int main(int argc, char **argv)
   char user_input[4];
   while (1)
   {
+
+    printf("entrou no while \n");
+    printf("SOCKFD: %d\n", sockfd);
     printf("Insert desired operation (get, add, ext):\n");
     fgets(user_input, 4, stdin);
-    printf("%s\n", user_input);
+    char c;
+    while((c = getchar()) != '\n' && c != EOF && c);
+    printf("Selected operation: %s\n", user_input);
     if (strcmp(user_input, "ext") == 0)
     {
       write(sockfd, "EXITING", 8);
@@ -108,6 +114,7 @@ int main(int argc, char **argv)
     {
       int line_number = read_line_number();
       get_line(sockfd, line_number);
+      printf("continuar a execução \n");
       continue;
     }
     if (strcmp(user_input, "add") == 0)
