@@ -14,7 +14,7 @@
 #define FILENAME "file.txt"
 
 FILE *shared_file;
-char text[MAX_LINES+1][LINE_SIZE];
+char text[MAX_LINES + 1][LINE_SIZE];
 pthread_mutex_t line_lock[MAX_LINES];
 
 char req_type;
@@ -39,6 +39,13 @@ void read_file_matrix()
   fclose(shared_file);
   if (line)
     free(line);
+}
+
+void save_file()
+{
+  shared_file = fopen(FILENAME, "wb");
+  fwrite(text, sizeof(char), sizeof(text), shared_file);
+  fclose(shared_file);
 }
 
 char *get_line(int index)
@@ -67,6 +74,46 @@ char *add_line(int index, char *content)
   return "ERR?";
 }
 
+void *client_req_handler(void *params)
+{
+  int client_sockfd = *(int *)params;
+  char str_in[REQ_SIZE];
+
+  while (read(client_sockfd, &str_in, REQ_SIZE) > 0)
+  {
+    {
+
+      req_type = str_in[0];
+      strncpy(line_index, &str_in[1], 4);
+      strncpy(new_line, &str_in[5], LINE_SIZE);
+
+      printf("ReqType: %c\nLineIndex: %s\nNewLine: %s", req_type, line_index, new_line);
+
+      // handle_request(req_type, line_index, new_line);
+      if (req_type == '1')
+      {
+        printf("Processing get.\n");
+        strncpy(response, get_line(atoi(line_index)), LINE_SIZE);
+      }
+      else if (req_type == '2')
+      {
+        printf("Processing add.\n");
+        strcpy(response, "");
+        sprintf(response, "%-" STR(LINE_SIZE) "s", add_line(atoi(line_index), new_line));
+      }
+      else
+      {
+        save_file();
+        close(client_sockfd);
+        printf("DIDNT.\n");
+      }
+
+      printf("Response:%s\n", response);
+      write(client_sockfd, &response, RESPONSE_SIZE);
+    }
+  }
+}
+
 int main()
 {
   read_file_matrix();
@@ -74,7 +121,6 @@ int main()
   int server_len, client_len;
   struct sockaddr_in server_address;
   struct sockaddr_in client_address;
-  char str_in[REQ_SIZE];
 
   server_sockfd = socket(AF_INET, SOCK_STREAM, 0);
   server_address.sin_family = AF_INET;
@@ -89,34 +135,13 @@ int main()
     printf("server waiting\n");
     client_len = sizeof(client_address);
     client_sockfd = accept(server_sockfd, (struct sockaddr *)&client_address, &client_len);
-    read(client_sockfd, &str_in, REQ_SIZE);
 
-    req_type = str_in[0];
-    strncpy(line_index, &str_in[1], 4);
-    strncpy(new_line, &str_in[5], LINE_SIZE);
-
-    printf("ReqType: %c\nLineIndex: %s\nNewLine: %s\n", req_type, line_index, new_line);
-
-    // handle_request(req_type, line_index, new_line);
-    if (req_type == '1')
+    pthread_t thread_id;
+    int thread_status = pthread_create(&thread_id, NULL, client_req_handler, &client_sockfd);
+    if (thread_status != 0)
     {
-      printf("Processing get.\n");
-      strncpy(response, get_line(atoi(line_index)), LINE_SIZE);
+      printf("Thread error");
+      exit(1);
     }
-    else if (req_type == '2')
-    {
-      printf("Processing add.\n");
-      strcpy(response, "");
-      sprintf(response, "%-" STR(LINE_SIZE) "s", add_line(atoi(line_index), new_line));
-    }
-    else
-    {
-      close(client_sockfd);
-      printf("DIDNT.\n");
-    }
-
-    printf("Response:%s\n", response);
-    write(client_sockfd, &response, RESPONSE_SIZE);
-
   }
 }
