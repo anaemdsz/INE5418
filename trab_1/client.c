@@ -45,7 +45,7 @@ void get_line(int sockfd, int line_no)
 
   char response[RESPONSE_SIZE];
   read(sockfd, response, RESPONSE_SIZE);
-  printf("Text from line %i: %s\n", line_no, response);
+  printf("Text from line %i: %s\n\n", line_no, response);
 }
 
 void add_line(int sockfd, int line_no, char *text)
@@ -57,10 +57,8 @@ void add_line(int sockfd, int line_no, char *text)
   sprintf(index, "%04u", line_no);
   strcat(message, index);
   strcat(message, text);
-  printf("%s\n", message);
 
   sprintf(buff, "%-" STR(LINE_SIZE) "s", message);
-  printf("%s\n", buff);
   write(sockfd, buff, REQ_SIZE);
 
   char response[LINE_SIZE];
@@ -105,8 +103,9 @@ int main(int argc, char **argv)
     if (strcmp(user_input, "ext") == 0)
     {
       // Close socket connection
-      close(sockfd);
       write(sockfd, "EXITING", 8);
+      write(sockfd, "0", 0);
+      close(sockfd);
       break;
     }
     else if (strcmp(user_input, "get") == 0)
