@@ -76,42 +76,47 @@ char *add_line(int index, char *content)
 
 void *client_req_handler(void *params)
 {
+  printf("start\n");
+  sleep(DELAY);
   int client_sockfd = *(int *)params;
   char str_in[REQ_SIZE];
 
+  sleep(DELAY);
   while (read(client_sockfd, &str_in, REQ_SIZE) > 0)
   {
+
+    printf("lidando com request do client #%i\n", client_sockfd);
+    sleep(DELAY);
+    req_type = str_in[0];
+    strncpy(line_index, &str_in[1], 4);
+    strncpy(new_line, &str_in[5], LINE_SIZE);
+    // printf("ReqType: %c\nLineIndex: %s\nNewLine: %s", req_type, line_index, new_line);
+
+    // handle_request(req_type, line_index, new_line);
+    if (req_type == '1')
     {
-
-      req_type = str_in[0];
-      strncpy(line_index, &str_in[1], 4);
-      strncpy(new_line, &str_in[5], LINE_SIZE);
-
-      printf("ReqType: %c\nLineIndex: %s\nNewLine: %s", req_type, line_index, new_line);
-
-      // handle_request(req_type, line_index, new_line);
-      if (req_type == '1')
-      {
-        printf("Processing get.\n");
-        strncpy(response, get_line(atoi(line_index)), LINE_SIZE);
-      }
-      else if (req_type == '2')
-      {
-        printf("Processing add.\n");
-        strcpy(response, "");
-        sprintf(response, "%-" STR(LINE_SIZE) "s", add_line(atoi(line_index), new_line));
-      }
-      else
-      {
-        save_file();
-        close(client_sockfd);
-        printf("DIDNT.\n");
-      }
-
-      printf("Response:%s\n", response);
-      write(client_sockfd, &response, RESPONSE_SIZE);
+      printf("Processing GET.\n");
+      strncpy(response, get_line(atoi(line_index)), LINE_SIZE);
     }
+    else if (req_type == '2')
+    {
+      printf("Processing ADD.\n");
+      strcpy(response, "");
+      // sprintf(response, "%-"STR(LINE_SIZE)"s", add_line(atoi(line_index), new_line));
+      sprintf(response, "%-" STR(LINE_SIZE) "s", add_line(atoi(line_index), new_line));
+    }
+    else
+    {
+      printf("Client #%i EXIT.\n", client_sockfd);
+      close(client_sockfd);
+      break;
+    }
+
+    printf("Response:%s\n", response);
+    write(client_sockfd, &response, RESPONSE_SIZE);
   }
+
+  close(client_sockfd);
 }
 
 int main()

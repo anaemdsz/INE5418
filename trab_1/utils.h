@@ -1,7 +1,8 @@
+#define MAX_CLIENTS 2
+
+
 #define LINE_SIZE 10
 #define MAX_LINES 1023
-#define MAX_CLIENTS 3
-
 #define MAX_LINE_DIGITS 4
 
 
@@ -16,3 +17,5 @@
 
 #define STR_(X) #X
 #define STR(X) STR_(X)
+
+#define DELAY 0
